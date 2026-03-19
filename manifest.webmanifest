@@ -1,0 +1,27 @@
+{
+  "name": "PHLawHelper",
+  "short_name": "PHLawHelper",
+  "description": "Copilot jurídico futurista para gestão de processos, prazos e análise assistida por IA.",
+  "lang": "pt-PT",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e0f0d",
+  "theme_color": "#0e0f0d",
+  "icons": [
+    {
+      "src": "/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

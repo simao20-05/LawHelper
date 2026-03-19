@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">PHLawHelper app icon</title>
+  <desc id="desc">Futuristic legal app icon with a gold balance scale and monogram on a dark background.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#11120f"/>
+      <stop offset="100%" stop-color="#1e201a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f1d37a"/>
+      <stop offset="100%" stop-color="#b88c2d"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect x="22" y="22" width="468" height="468" rx="94" fill="none" stroke="#3d3216" stroke-width="2"/>
+  <path d="M110 128h292" stroke="url(#gold)" stroke-width="10" stroke-linecap="round" opacity="0.28"/>
+  <g filter="url(#glow)" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 118v228" stroke-width="14"/>
+    <path d="M194 170h124" stroke-width="12"/>
+    <path d="M160 192l-42 74h84l-42-74Z" stroke-width="10"/>
+    <path d="M352 192l-42 74h84l-42-74Z" stroke-width="10"/>
+    <path d="M168 286c12 24 48 24 60 0" stroke-width="10"/>
+    <path d="M344 286c12 24 48 24 60 0" stroke-width="10"/>
+    <path d="M208 382h96" stroke-width="14"/>
+    <path d="M224 346h64" stroke-width="12"/>
+  </g>
+  <g fill="url(#gold)">
+    <circle cx="256" cy="118" r="16" opacity="0.95"/>
+    <path d="M152 362h70v18h-22v30h-26v-30h-22z" opacity="0.9"/>
+  </g>
+  <text x="256" y="414" text-anchor="middle" font-family="'DM Serif Display', Georgia, serif" font-size="74" fill="#f3dc97" letter-spacing="8">PH</text>
+</svg>
