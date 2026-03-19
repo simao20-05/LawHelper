@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHLawHelper — Copilot Jurídico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0f0d; --bg2: #141510; --bg3: #1a1b16; --bg4: #22231d;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #e8e6de; --text2: #9a9890; --text3: #5e5d57;
+    --gold: #c9a84c; --gold2: #e8c76a; --gold-dim: rgba(201,168,76,0.12); --gold-glow: rgba(201,168,76,0.06);
+    --green: #4a8c5c; --green-bg: rgba(74,140,92,0.12);
+    --red: #8c4a4a; --red-bg: rgba(140,74,74,0.12);
+    --blue: #4a6a8c; --blue-bg: rgba(74,106,140,0.12);
+    --amber: #8c7a4a; --amber-bg: rgba(140,122,74,0.12);
+    --sidebar-w: 220px;
+    --font-d: 'DM Serif Display', serif;
+    --font-b: 'Instrument Sans', sans-serif;
+    --font-m: 'DM Mono', monospace;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-b); font-size: 14px; line-height: 1.5; overflow: hidden; }
+  .app { display: flex; height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+  .logo-wrap { display: flex; align-items: center; gap: 9px; }
+  .logo-icon { width: 30px; height: 30px; background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.28); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .logo-name { font-family: var(--font-d); font-size: 17px; color: var(--gold2); }
+  .logo-sub { font-size: 10px; color: var(--text3); font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; margin-top: 1px; }
+  .sidebar-search { margin: 10px 10px 0; position: relative; }
+  .sidebar-search input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px 6px 28px; color: var(--text); font-family: var(--font-b); font-size: 12px; outline: none; }
+  .sidebar-search input::placeholder { color: var(--text3); }
+  .s-ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 11px; }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
+  .nav-gl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-weight: 600; padding: 10px 8px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 7px; cursor: pointer; color: var(--text2); font-size: 13px; transition: all 0.12s; position: relative; user-select: none; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--gold-dim); color: var(--gold2); font-weight: 500; }
+  .nav-item.active::before { content: ''; position:absolute; left:0; top:5px; bottom:5px; width:2px; background:var(--gold); border-radius:2px; }
+  .nav-ico { width: 15px; text-align: center; font-size: 12px; }
+  .nav-badge { margin-left: auto; background: var(--red-bg); color: #c47a7a; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+  .nav-badge.g { background: var(--green-bg); color: #7abf8c; }
+  .sidebar-footer { padding: 10px; border-top: 1px solid var(--border); }
+  .user-chip { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; background: var(--bg3); cursor: pointer; }
+  .user-av { width: 28px; height: 28px; border-radius: 50%; background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--gold); font-family: var(--font-m); }
+  .user-name { font-size: 12.5px; font-weight: 500; }
+  .user-role { font-size: 11px; color: var(--text3); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .topbar { height: 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 22px; gap: 12px; background: var(--bg2); flex-shrink: 0; }
+  .topbar-title { font-family: var(--font-d); font-size: 16px; color: var(--text); flex: 1; }
+  .btn { padding: 6px 13px; border-radius: 7px; font-family: var(--font-b); font-size: 12.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.12s; display: flex; align-items: center; gap: 5px; }
+  .btn-g { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-g:hover { background: var(--bg3); color: var(--text); }
+  .btn-p { background: var(--gold-dim); color: var(--gold2); border: 1px solid rgba(201,168,76,0.22); }
+  .btn-p:hover { background: rgba(201,168,76,0.19); }
+  .content { flex: 1; overflow-y: auto; }
+
+  /* VIEWS */
+  .view { display: none; padding: 24px 26px; animation: fi 0.18s ease; }
+  .view.active { display: block; }
+  @keyframes fi { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:translateY(0); } }
+
+  /* BADGES */
+  .badge { font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; letter-spacing: 0.02em; }
+  .b-ec { background: var(--green-bg); color: #7abf8c; }
+  .b-urg { background: var(--red-bg); color: #c47a7a; }
+  .b-ag { background: var(--amber-bg); color: #c4aa7a; }
+  .b-an { background: var(--blue-bg); color: #7a9ec4; }
+  .b-no { background: var(--bg4); color: var(--text2); border: 1px solid var(--border); }
+  .b-co { background: rgba(80,80,80,0.12); color: var(--text3); }
+  .pdot { width: 7px; height: 7px; border-radius: 50%; }
+  .pa { background: #c47a7a; } .pm { background: #c4aa7a; } .pb { background: #7a9ec4; }
+
+  /* DASHBOARD */
+  .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
+  .mc { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 17px 18px; position: relative; overflow: hidden; transition: border-color 0.15s; }
+  .mc:hover { border-color: var(--border2); }
+  .mc::after { content: ''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.014) 0%,transparent 60%); pointer-events:none; }
+  .mc-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); font-weight: 600; margin-bottom: 9px; }
+  .mc-val { font-family: var(--font-d); font-size: 30px; color: var(--text); line-height: 1; margin-bottom: 5px; }
+  .mc-sub { font-size: 11px; color: var(--text3); }
+  .mc-ico { position: absolute; top: 16px; right: 16px; font-size: 16px; opacity: 0.4; }
+  .mc.urg { border-color: rgba(140,74,74,0.28); }
+  .mc.urg .mc-val { color: #c47a7a; }
+
+  .dash-grid { display: grid; grid-template-columns: 1fr 300px; gap: 18px; }
+  .sec-title { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); font-weight: 600; margin-bottom: 12px; }
+  .clw { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .clw-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .clw-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .clw-row:last-child { border-bottom: none; }
+  .clw-row:hover { background: var(--bg3); }
+  .cn { font-size: 13px; font-weight: 500; }
+  .cs { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+  .aw { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .ai-item { display: flex; gap: 11px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .ai-item:last-child { border-bottom: none; }
+  .ad { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 6px; }
+  .at { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .atm { font-size: 10.5px; color: var(--text3); margin-top: 2px; font-family: var(--font-m); }
+
+  /* TABLE */
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .fi { background: var(--bg2); border: 1px solid var(--border); border-radius: 7px; padding: 7px 11px; color: var(--text); font-family: var(--font-b); font-size: 12.5px; outline: none; transition: border-color 0.15s; }
+  .fi:focus { border-color: var(--border2); }
+  .fi::placeholder { color: var(--text3); }
+  .tw { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  tr { cursor: pointer; transition: background 0.1s; }
+  .rc { font-family: var(--font-m); font-size: 11px; color: var(--text3); }
+
+  /* CASE DETAIL */
+  .cdh { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr auto; gap: 18px; }
+  .cref { font-family: var(--font-m); font-size: 10.5px; color: var(--gold); margin-bottom: 5px; letter-spacing: 0.06em; }
+  .ctitle { font-family: var(--font-d); font-size: 21px; color: var(--text); margin-bottom: 7px; line-height: 1.2; }
+  .cmeta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; }
+  .cmi { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+  .cmi strong { color: var(--text2); font-weight: 500; }
+  .tabs { display: flex; gap: 2px; margin-bottom: 18px; background: var(--bg2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; width: fit-content; }
+  .tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-weight: 500; color: var(--text3); transition: all 0.12s; user-select: none; }
+  .tab:hover { color: var(--text2); background: var(--bg3); }
+  .tab.active { background: var(--bg3); color: var(--text); border: 1px solid var(--border2); }
+  .tc { display: none; }
+  .tc.active { display: block; animation: fi 0.15s ease; }
+  .two-col { display: grid; grid-template-columns: 1fr 270px; gap: 18px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .ct { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); font-weight: 600; margin-bottom: 12px; }
+  .cb { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+  /* NOTES */
+  .ni { display: flex; gap: 12px; margin-bottom: 18px; }
+  .nl { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .nd { width: 8px; height: 8px; border-radius: 50%; background: var(--bg4); border: 2px solid var(--border2); }
+  .nd.pin { border-color: var(--gold); background: var(--gold-dim); }
+  .nc { width: 1px; background: var(--border); flex: 1; margin-top: 4px; }
+  .nb { background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 13px 15px; flex: 1; margin-bottom: 3px; }
+  .nb.pin { border-color: rgba(201,168,76,0.2); background: var(--gold-glow); }
+  .na { font-size: 10.5px; color: var(--text3); margin-bottom: 5px; font-family: var(--font-m); }
+  .nt { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+  /* TASKS */
+  .ti { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .ti:last-child { border-bottom: none; }
+  .tch { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border2); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+  .tch.done { background: var(--green-bg); border-color: var(--green); }
+  .tch.done::after { content: '✓'; font-size: 10px; color: #7abf8c; }
+  .tt { font-size: 13px; color: var(--text); flex: 1; }
+  .tt.done { text-decoration: line-through; color: var(--text3); }
+
+  /* AI */
+  .ai-ta { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 13px 15px; color: var(--text); font-family: var(--font-b); font-size: 13px; resize: none; outline: none; min-height: 90px; transition: border-color 0.15s; line-height: 1.6; }
+  .ai-ta:focus { border-color: rgba(201,168,76,0.28); }
+  .ai-res { background: var(--bg3); border: 1px solid rgba(201,168,76,0.15); border-radius: 9px; padding: 16px 18px; margin-top: 14px; }
+  .ai-rl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 600; margin-bottom: 11px; }
+  .ai-st { font-size: 10.5px; font-weight: 600; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ai-sb { font-size: 13px; color: var(--text2); line-height: 1.65; }
+  .ai-risk { display: flex; align-items: flex-start; gap: 7px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text2); }
+  .ai-risk:last-child { border-bottom: none; }
+  .ri { color: #c47a7a; flex-shrink: 0; margin-top: 2px; font-size: 10px; }
+  .ai-dis { font-size: 11px; color: var(--text3); margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--border); font-style: italic; line-height: 1.5; }
+  .ai-typing { display: flex; gap: 4px; align-items: center; padding: 10px 0; }
+  .ai-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+  .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* DOCS */
+  .di { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .di:last-child { border-bottom: none; }
+  .dico { width: 32px; height: 32px; background: var(--bg4); border: 1px solid var(--border); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+
+  /* DEADLINES */
+  .dl-list { display: flex; flex-direction: column; gap: 2px; }
+  .dl-item { display: flex; align-items: center; gap: 13px; padding: 12px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.12s; }
+  .dl-item:hover { border-color: var(--border2); }
+  .dl-item.urg { border-color: rgba(140,74,74,0.25); }
+  .dl-day { font-family: var(--font-d); font-size: 21px; line-height: 1; }
+  .dl-month { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
+  .dl-u { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+  .dl-green { background: var(--green-bg); color: #7abf8c; }
+  .dl-red { background: var(--red-bg); color: #c47a7a; }
+  .dl-amber { background: var(--amber-bg); color: #c4aa7a; }
+
+  /* REFS */
+  .ref-i { padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .ref-i:last-child { border-bottom: none; }
+  .ref-c { font-family: var(--font-m); font-size: 10.5px; color: var(--gold); margin-bottom: 4px; }
+  .ref-t { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+  .ref-s { font-size: 12.5px; color: var(--text2); line-height: 1.55; }
+
+  .back { display: flex; align-items: center; gap: 5px; color: var(--text3); font-size: 12.5px; cursor: pointer; margin-bottom: 16px; transition: color 0.12s; width: fit-content; }
+  .back:hover { color: var(--text2); }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .sbar { display: flex; gap: 1px; height: 3px; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+
+  @media (max-width: 1100px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid, .two-col { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 820px) {
+    html, body { overflow: auto; }
+    .app { flex-direction: column; height: auto; min-height: 100vh; }
+    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    .main { min-height: 0; }
+    .topbar { padding: 12px 16px; height: auto; flex-wrap: wrap; }
+    .view { padding: 18px 16px; }
+    .metrics { grid-template-columns: 1fr; }
+    .tabs { flex-wrap: wrap; }
+    .cdh { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrap">
+        <div class="logo-icon">⚖</div>
+        <div>
+          <div class="logo-name">PHLawHelper</div>
+          <div class="logo-sub">Copilot Jurídico</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-search">
+      <span class="s-ico">⌕</span>
+      <input type="text" placeholder="Pesquisar processos…">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-gl">Principal</div>
+      <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-ico">◈</span>Dashboard</div>
+      <div class="nav-item" onclick="nav('casos')"><span class="nav-ico">◻</span>Processos<span class="nav-badge">3</span></div>
+      <div class="nav-item" onclick="nav('clientes')"><span class="nav-ico">◯</span>Clientes</div>
+      <div class="nav-item" onclick="nav('prazos')"><span class="nav-ico">◷</span>Prazos<span class="nav-badge">2</span></div>
+      <div class="nav-gl" style="margin-top:6px">Ferramentas</div>
+      <div class="nav-item" onclick="nav('ai')"><span class="nav-ico">✦</span>AI Copilot<span class="nav-badge g">Beta</span></div>
+      <div class="nav-item" onclick="nav('pesquisa')"><span class="nav-ico">◎</span>Pesquisa Legal</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-av">DS</div>
+        <div>
+          <div class="user-name">Dr. Duarte Silva</div>
+          <div class="user-role">Sócio Gerente</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title" id="tt">Dashboard</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-g" onclick="nav('casos')">Ver Processos</button>
+        <button class="btn btn-p" onclick="nav('caso')">+ Novo Processo</button>
+      </div>
+    </header>
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="view active" id="v-dashboard">
+        <div class="metrics">
+          <div class="mc"><div class="mc-label">Total Processos</div><div class="mc-val">47</div><div class="mc-sub">↑ 4 este mês</div><div class="mc-ico">◻</div></div>
+          <div class="mc"><div class="mc-label">Em Curso</div><div class="mc-val">23</div><div class="mc-sub">12 aguardam resposta</div><div class="mc-ico">◈</div></div>
+          <div class="mc urg"><div class="mc-label">Urgentes</div><div class="mc-val">3</div><div class="mc-sub">Prazo &lt; 7 dias</div><div class="mc-ico">⚠</div></div>
+          <div class="mc"><div class="mc-label">Concluídos</div><div class="mc-val">19</div><div class="mc-sub">Este trimestre</div><div class="mc-ico">✓</div></div>
+        </div>
+        <div class="sbar">
+          <div style="flex:23;background:#4a8c5c;opacity:0.7"></div>
+          <div style="flex:9;background:#c9a84c;opacity:0.7"></div>
+          <div style="flex:3;background:#8c4a4a;opacity:0.7"></div>
+          <div style="flex:12;background:#4a6a8c;opacity:0.5"></div>
+        </div>
+        <div style="display:flex;gap:14px;margin-bottom:20px">
+          <span style="font-size:11px;color:var(--text3)"><span style="color:#7abf8c">■</span> Em curso</span>
+          <span style="font-size:11px;color:var(--text3)"><span style="color:#c4aa7a">■</span> A aguardar</span>
+          <span style="font-size:11px;color:var(--text3)"><span style="color:#c47a7a">■</span> Urgente</span>
+          <span style="font-size:11px;color:var(--text3)"><span style="color:#7a9ec4">■</span> Análise</span>
+        </div>
+        <div class="dash-grid">
+          <div>
+            <div class="sec-title">Processos Recentes</div>
+            <div class="clw">
+              <div class="clw-head"><span style="font-size:13px;font-weight:500">Activos</span><button class="btn btn-g" style="font-size:11px;padding:4px 10px" onclick="nav('casos')">Ver todos</button></div>
+              <div class="clw-row" onclick="nav('caso')"><div><div class="cn">Faria & Associados vs. TechStart Lda.</div><div class="cs">Laboral · Dr.ª Ana Ferreira · Tribunal do Trabalho</div></div><span class="badge b-urg">Urgente</span><div class="pdot pa"></div></div>
+              <div class="clw-row" onclick="nav('caso')"><div><div class="cn">Herança Monteiro — Partilha Judicial</div><div class="cs">Civil · Dr. Rui Santos · Tribunal Cível Porto</div></div><span class="badge b-ec">Em curso</span><div class="pdot pm"></div></div>
+              <div class="clw-row" onclick="nav('caso')"><div><div class="cn">Contrato Fornecimento — GlobalFoods SA</div><div class="cs">Comercial · Dr. Duarte Silva · Arbitragem</div></div><span class="badge b-an">Em análise</span><div class="pdot pb"></div></div>
+              <div class="clw-row" onclick="nav('caso')"><div><div class="cn">Despedimento Colectivo — NovaMed Lda.</div><div class="cs">Laboral · Dr.ª Ana Ferreira · DGERT</div></div><span class="badge b-ag">A aguardar</span><div class="pdot pa"></div></div>
+              <div class="clw-row" onclick="nav('caso')"><div><div class="cn">Propriedade Intelectual — LogoMarca ®</div><div class="cs">PI · Dr. Duarte Silva · INPI</div></div><span class="badge b-ec">Em curso</span><div class="pdot pb"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="sec-title">Actividade Recente</div>
+            <div class="aw">
+              <div class="ai-item"><div class="ad"></div><div><div class="at">Novo documento adicionado ao processo <strong style="color:var(--text)">2024-LBR-041</strong></div><div class="atm">há 23 min</div></div></div>
+              <div class="ai-item"><div class="ad" style="background:#7abf8c"></div><div><div class="at">Nota fixada — "Testemunha confirmou ausência de contrato escrito"</div><div class="atm">há 1h 14min</div></div></div>
+              <div class="ai-item"><div class="ad" style="background:#c47a7a"></div><div><div class="at">Prazo crítico a 4 dias — Audiência Faria &amp; Assoc.</div><div class="atm">há 3h</div></div></div>
+              <div class="ai-item"><div class="ad" style="background:#7a9ec4"></div><div><div class="at">AI Analysis concluída — processo GlobalFoods</div><div class="atm">ontem, 16:42</div></div></div>
+              <div class="ai-item"><div class="ad"></div><div><div class="at">Tarefa concluída — "Enviar carta notificação cliente"</div><div class="atm">ontem, 11:30</div></div></div>
+              <div class="ai-item"><div class="ad"></div><div><div class="at">Novo cliente registado — <strong style="color:var(--text)">NovaMed Lda.</strong></div><div class="atm">há 2 dias</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASOS -->
+      <div class="view" id="v-casos">
+        <div class="filters">
+          <input class="fi" placeholder="🔍  Pesquisar processo…" style="flex:1;min-width:180px">
+          <select class="fi"><option>Todos os estados</option><option>Em curso</option><option>Urgente</option><option>A aguardar</option><option>Concluído</option></select>
+          <select class="fi"><option>Toda a equipa</option><option>Dr.ª Ana Ferreira</option><option>Dr. Rui Santos</option><option>Dr. Duarte Silva</option></select>
+          <select class="fi"><option>Tipo de processo</option><option>Laboral</option><option>Civil</option><option>Comercial</option><option>Prop. Intelectual</option></select>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Ref.</th><th>Processo</th><th>Cliente</th><th>Tipo</th><th>Advogado</th><th>Estado</th><th>Prioridade</th><th>Próximo Prazo</th></tr></thead>
+            <tbody>
+              <tr onclick="nav('caso')"><td><span class="rc">2024-LBR-041</span></td><td><span style="font-size:13px;font-weight:500">Faria &amp; Assoc. vs. TechStart</span></td><td><span style="font-size:12px;color:var(--text2)">Faria &amp; Associados</span></td><td><span class="badge b-an" style="font-size:10px">Laboral</span></td><td><span style="font-size:12px;color:var(--text2)">Dr.ª A. Ferreira</span></td><td><span class="badge b-urg">Urgente</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pa"></div><span style="font-size:12px;color:var(--text3)">Alta</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:#c47a7a">24 Mar 2025</span></td></tr>
+              <tr onclick="nav('caso')"><td><span class="rc">2024-CIV-028</span></td><td><span style="font-size:13px;font-weight:500">Herança Monteiro — Partilha</span></td><td><span style="font-size:12px;color:var(--text2)">Família Monteiro</span></td><td><span class="badge b-an" style="font-size:10px">Civil</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. R. Santos</span></td><td><span class="badge b-ec">Em curso</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pm"></div><span style="font-size:12px;color:var(--text3)">Média</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:var(--text2)">15 Abr 2025</span></td></tr>
+              <tr onclick="nav('caso')"><td><span class="rc">2024-COM-019</span></td><td><span style="font-size:13px;font-weight:500">Contrato — GlobalFoods SA</span></td><td><span style="font-size:12px;color:var(--text2)">GlobalFoods SA</span></td><td><span class="badge b-an" style="font-size:10px">Comercial</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. D. Silva</span></td><td><span class="badge b-an">Em análise</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pb"></div><span style="font-size:12px;color:var(--text3)">Baixa</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:var(--text2)">02 Mai 2025</span></td></tr>
+              <tr onclick="nav('caso')"><td><span class="rc">2025-LBR-003</span></td><td><span style="font-size:13px;font-weight:500">Despedimento — NovaMed</span></td><td><span style="font-size:12px;color:var(--text2)">NovaMed Lda.</span></td><td><span class="badge b-an" style="font-size:10px">Laboral</span></td><td><span style="font-size:12px;color:var(--text2)">Dr.ª A. Ferreira</span></td><td><span class="badge b-ag">A aguardar</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pa"></div><span style="font-size:12px;color:var(--text3)">Alta</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:#c47a7a">26 Mar 2025</span></td></tr>
+              <tr onclick="nav('caso')"><td><span class="rc">2024-PI-007</span></td><td><span style="font-size:13px;font-weight:500">Prop. Intelectual — LogoMarca</span></td><td><span style="font-size:12px;color:var(--text2)">Studio Criativo Lda.</span></td><td><span class="badge b-an" style="font-size:10px">PI</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. D. Silva</span></td><td><span class="badge b-ec">Em curso</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pb"></div><span style="font-size:12px;color:var(--text3)">Baixa</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:var(--text2)">30 Mai 2025</span></td></tr>
+              <tr onclick="nav('caso')"><td><span class="rc">2024-CIV-033</span></td><td><span style="font-size:13px;font-weight:500">Divórcio — Pereira / Costa</span></td><td><span style="font-size:12px;color:var(--text2)">Carlos Pereira</span></td><td><span class="badge b-an" style="font-size:10px">Família</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. R. Santos</span></td><td><span class="badge b-ec">Em curso</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pm"></div><span style="font-size:12px;color:var(--text3)">Média</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:var(--text2)">10 Abr 2025</span></td></tr>
+              <tr onclick="nav('caso')"><td><span class="rc">2024-COM-044</span></td><td><span style="font-size:13px;font-weight:500">Incumprimento — Obras Norte</span></td><td><span style="font-size:12px;color:var(--text2)">Construtora Norte SA</span></td><td><span class="badge b-an" style="font-size:10px">Comercial</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. D. Silva</span></td><td><span class="badge b-co">Concluído</span></td><td><div style="display:flex;align-items:center;gap:5px"><div class="pdot pb"></div><span style="font-size:12px;color:var(--text3)">Baixa</span></div></td><td><span style="font-size:12px;font-family:var(--font-m);color:var(--text3)">—</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CASO DETALHE -->
+      <div class="view" id="v-caso">
+        <div class="back" onclick="nav('casos')">← Voltar aos processos</div>
+        <div class="cdh">
+          <div>
+            <div class="cref">2024-LBR-041 · Tribunal do Trabalho de Lisboa</div>
+            <div class="ctitle">Faria & Associados vs. TechStart Lda.</div>
+            <div style="font-size:13px;color:var(--text2)">Despedimento sem justa causa com pedido de indemnização por danos morais e patrimoniais.</div>
+            <div class="cmeta">
+              <div class="cmi">👤 <strong>Cliente:</strong> Faria & Associados</div>
+              <div class="cmi">⚖ <strong>Advogado:</strong> Dr.ª Ana Ferreira</div>
+              <div class="cmi">◷ <strong>Prazo:</strong> 24 Mar 2025</div>
+              <div class="cmi">◈ <strong>Tipo:</strong> Laboral</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <span class="badge b-urg" style="font-size:12px;padding:5px 13px">Urgente</span>
+            <span class="badge" style="background:var(--red-bg);color:#c47a7a;font-size:10.5px">Alta Prioridade</span>
+            <button class="btn btn-g" style="margin-top:6px;font-size:12px">Editar</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" onclick="stab(this,'to')">Visão Geral</div>
+          <div class="tab" onclick="stab(this,'tn')">Notas</div>
+          <div class="tab" onclick="stab(this,'td')">Documentos</div>
+          <div class="tab" onclick="stab(this,'tk')">Tarefas</div>
+          <div class="tab" onclick="stab(this,'ta')">✦ AI Analysis</div>
+          <div class="tab" onclick="stab(this,'tr')">Refs. Legais</div>
+        </div>
+
+        <div class="tc active" id="to">
+          <div class="two-col">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="card"><div class="ct">Sumário</div><div class="cb">O cliente Faria & Associados alega despedimento sem justa causa após 7 anos de contrato sem termo. O empregador invoca inadaptação às novas funções decorrentes de reestruturação. O pedido inclui indemnização de 14 meses de salário base acrescido de danos não patrimoniais no valor de €8.500.</div></div>
+              <div class="card"><div class="ct">Objectivo Estratégico</div><div class="cb">Demonstrar ausência de fundamento legal para despedimento por inadaptação — nomeadamente a inexistência de formação adequada prévia e falta de aviso prévio conforme art. 375.º do CT. Obter declaração de ilicitude e indemnização máxima.</div></div>
+              <div class="card"><div class="ct">Próximos Passos</div><div class="cb" style="display:flex;flex-direction:column;gap:7px">
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--gold);margin-top:2px">→</span> Submeter contestação até 24 de Março (prazo crítico)</div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--gold);margin-top:2px">→</span> Recolher declaração da testemunha Eng.º Pedro Lopes</div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--gold);margin-top:2px">→</span> Solicitar cópias dos avisos de formação ao cliente</div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--gold);margin-top:2px">→</span> Rever jurisprudência TRL recente sobre inadaptação</div>
+              </div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:13px">
+              <div class="card">
+                <div class="ct">Linha Temporal</div>
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <div style="display:flex;gap:10px;padding-bottom:11px;border-bottom:1px solid var(--border)"><div style="font-family:var(--font-m);font-size:10px;color:var(--text3);min-width:56px;padding-top:2px">Mar 2025</div><div><div style="font-size:12.5px;font-weight:500">Audiência de julgamento</div><div style="font-size:11.5px;color:var(--text3)">Tribunal do Trabalho, Sala 3</div></div></div>
+                  <div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)"><div style="font-family:var(--font-m);font-size:10px;color:var(--text3);min-width:56px;padding-top:2px">Fev 2025</div><div><div style="font-size:12.5px;font-weight:500">Contestação apresentada</div><div style="font-size:11.5px;color:var(--text3)">Articulados enviados</div></div></div>
+                  <div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)"><div style="font-family:var(--font-m);font-size:10px;color:var(--text3);min-width:56px;padding-top:2px">Jan 2025</div><div><div style="font-size:12.5px;font-weight:500">Processo instaurado</div><div style="font-size:11.5px;color:var(--text3)">Pedido de patrocínio judiciário</div></div></div>
+                  <div style="display:flex;gap:10px;padding-top:11px"><div style="font-family:var(--font-m);font-size:10px;color:var(--text3);min-width:56px;padding-top:2px">Dez 2024</div><div><div style="font-size:12.5px;font-weight:500">Despedimento comunicado</div><div style="font-size:11.5px;color:var(--text3)">Carta entregue ao cliente</div></div></div>
+                </div>
+              </div>
+              <div class="card" style="background:var(--gold-glow);border-color:rgba(201,168,76,0.18)">
+                <div class="ct" style="color:var(--gold)">Alerta de Prazo</div>
+                <div style="font-family:var(--font-d);font-size:28px;color:#c47a7a;line-height:1">4 dias</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:4px">Audiência: 24 Mar · 10h00</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:9px">Contestação até 23 Mar às 23:59.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tc" id="tn">
+          <div style="margin-bottom:14px;display:flex;gap:8px">
+            <input class="fi" placeholder="Nova nota…" style="flex:1">
+            <button class="btn btn-p">+ Adicionar</button>
+          </div>
+          <div class="ni">
+            <div class="nl"><div class="nd pin"></div><div class="nc"></div></div>
+            <div style="flex:1"><div class="nb pin"><div class="na">Dr.ª Ana Ferreira · 18 Mar 2025, 15:34 <span style="color:var(--gold);font-size:10px">★ fixada</span></div><div class="nt">Testemunha Eng.º Pedro Lopes confirmou em reunião que nunca foi ministrada qualquer formação ao cliente após a reestruturação de Outubro 2024. Esta declaração é central para refutar o argumento da TechStart. Solicitar declaração escrita com urgência.</div></div></div>
+          </div>
+          <div class="ni">
+            <div class="nl"><div class="nd"></div><div class="nc"></div></div>
+            <div style="flex:1"><div class="nb"><div class="na">Dr. Duarte Silva · 15 Mar 2025, 09:12</div><div class="nt">Revisão da jurisprudência TRL 2022-2024 em casos de despedimento por inadaptação: maioria das decisões favorece o trabalhador quando não existe prova documental de formação prévia. Referências: Ac. TRL 12/2023, Ac. TRL 08/2024.</div></div></div>
+          </div>
+          <div class="ni">
+            <div class="nl"><div class="nd"></div></div>
+            <div style="flex:1"><div class="nb"><div class="na">Dr.ª Ana Ferreira · 10 Mar 2025, 14:05</div><div class="nt">Reunião com cliente. Confirma carta de despedimento sem aviso prévio mínimo de 30 dias. O contrato prevê funções genéricas sem especificação técnica — ponto favorável. Cliente mantém contacto com 2 ex-colegas que podem testemunhar.</div></div></div>
+          </div>
+        </div>
+
+        <div class="tc" id="td">
+          <div style="margin-bottom:14px;display:flex;justify-content:flex-end"><button class="btn btn-p">+ Upload Documento</button></div>
+          <div class="card">
+            <div class="di"><div class="dico">📄</div><div><div style="font-size:13px;font-weight:500">Carta_Despedimento_TechStart.pdf</div><div style="font-size:11.5px;color:var(--text3)">10 Mar 2025 · Dr.ª A. Ferreira</div></div><span style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--font-m)">284 KB</span></div>
+            <div class="di"><div class="dico">📋</div><div><div style="font-size:13px;font-weight:500">Contrato_Trabalho_Faria_2017.pdf</div><div style="font-size:11.5px;color:var(--text3)">10 Mar 2025 · Dr.ª A. Ferreira</div></div><span style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--font-m)">512 KB</span></div>
+            <div class="di"><div class="dico">📊</div><div><div style="font-size:13px;font-weight:500">Recibos_Vencimento_2024_Q4.xlsx</div><div style="font-size:11.5px;color:var(--text3)">12 Mar 2025 · Dr.ª A. Ferreira</div></div><span style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--font-m)">98 KB</span></div>
+            <div class="di"><div class="dico">✉</div><div><div style="font-size:13px;font-weight:500">Emails_Reestruturacao_Oct2024.pdf</div><div style="font-size:11.5px;color:var(--text3)">15 Mar 2025 · Dr. D. Silva</div></div><span style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--font-m)">1.2 MB</span></div>
+            <div class="di"><div class="dico">📝</div><div><div style="font-size:13px;font-weight:500">Peticao_Inicial_v3.docx</div><div style="font-size:11.5px;color:var(--text3)">Rascunho · 18 Mar 2025 · Dr.ª A. Ferreira</div></div><span style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--font-m)">78 KB</span></div>
+          </div>
+        </div>
+
+        <div class="tc" id="tk">
+          <div class="card">
+            <div class="ti"><div class="tch" onclick="toggle(this)"></div><div class="tt">Submeter contestação ao Tribunal do Trabalho de Lisboa</div><span class="badge b-urg" style="font-size:10px;flex-shrink:0">23 Mar</span></div>
+            <div class="ti"><div class="tch" onclick="toggle(this)"></div><div class="tt">Obter declaração escrita do Eng.º Pedro Lopes (testemunha)</div><span class="badge b-ag" style="font-size:10px;flex-shrink:0">20 Mar</span></div>
+            <div class="ti"><div class="tch" onclick="toggle(this)"></div><div class="tt">Preparar rol de testemunhas para audiência</div><span class="badge b-an" style="font-size:10px;flex-shrink:0">22 Mar</span></div>
+            <div class="ti"><div class="tch" onclick="toggle(this)"></div><div class="tt">Calcular valor actualizado do pedido indemnizatório</div><span class="badge b-an" style="font-size:10px;flex-shrink:0">21 Mar</span></div>
+            <div class="ti"><div class="tch done" onclick="toggle(this)"></div><div class="tt done">Reunião preparatória com cliente — 10 Mar 2025</div><span style="font-size:11px;color:var(--text3)">✓ Concluído</span></div>
+            <div class="ti"><div class="tch done" onclick="toggle(this)"></div><div class="tt done">Recolher documentação do contrato de trabalho original</div><span style="font-size:11px;color:var(--text3)">✓ Concluído</span></div>
+          </div>
+        </div>
+
+        <div class="tc" id="ta">
+          <div class="two-col">
+            <div>
+              <div style="font-size:11.5px;color:var(--text3);margin-bottom:7px;display:flex;align-items:center;gap:5px"><span style="color:var(--gold)">✦</span> Cole os factos ou peça uma análise específica</div>
+              <textarea class="ai-ta" id="ai-inp">Despedimento comunicado sem aviso prévio. Cliente trabalhou 7 anos sem contrato a termo. A empresa alega inadaptação às novas funções após reestruturação interna, mas não existe prova de formação prévia. O contrato original não especifica funções técnicas concretas. Testemunha confirma ausência de formação. Pedido: indemnização máxima + danos morais €8.500.</textarea>
+              <button class="btn btn-p" onclick="runAI()" style="width:100%;justify-content:center;padding:9px;margin-top:10px">✦ Analisar com AI</button>
+              <div class="ai-res" id="ai-res">
+                <div class="ai-rl">✦ PHLawHelper AI · Análise Gerada</div>
+                <div style="margin-bottom:12px"><div class="ai-st">Sumário Jurídico</div><div class="ai-sb">Caso de despedimento por inadaptação (art. 374.º-376.º CT) com fundamentos sólidos para declaração de ilicitude. A ausência documentada de formação prévia constitui vício procedimental determinante, reforçado pela antiguidade do trabalhador e pela natureza genérica das funções contratualizadas.</div></div>
+                <div style="margin-bottom:12px"><div class="ai-st">Questões Legais Centrais</div><div class="ai-sb">1. Cumprimento do art. 375.º CT (dever de formação prévia) — aparentemente violado.<br>2. Especificidade das funções no contrato vs. reestruturação unilateral — favorável ao trabalhador.<br>3. Aviso prévio mínimo legal (30 dias para 7 anos) — aparentemente incumprido.<br>4. Danos morais: sustentável se provada perturbação significativa.</div></div>
+                <div style="margin-bottom:12px"><div class="ai-st">Riscos Identificados</div><div><div class="ai-risk"><span class="ri">▲</span>Se a empresa apresentar registos de formação não mencionados, a posição enfraquece</div><div class="ai-risk"><span class="ri">▲</span>Quantum dos danos morais (€8.500) requer prova robusta de impacto documentado</div><div class="ai-risk"><span class="ri">▲</span>Testemunho oral precisa de corroboração documental</div></div></div>
+                <div><div class="ai-st">Informação em Falta</div><div class="ai-sb">• Cópia da comunicação de formação (ou ausência) da empresa<br>• Avaliações de desempenho dos últimos 2 anos<br>• Orgânica da empresa antes/após reestruturação</div></div>
+                <div class="ai-dis">⚠ Esta análise é gerada por IA e tem carácter auxiliar. Deve ser validada por advogado qualificado antes de qualquer utilização processual.</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:13px">
+              <div class="card">
+                <div class="ct">Ações Rápidas</div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <button class="btn btn-g" style="justify-content:flex-start;font-size:12px" onclick="quickAI('Sumariza as notas do processo de forma estruturada')">✦ Sumarizar notas</button>
+                  <button class="btn btn-g" style="justify-content:flex-start;font-size:12px" onclick="quickAI('Identifica os argumentos mais fortes e fracos deste caso')">✦ Pontos fortes e fracos</button>
+                  <button class="btn btn-g" style="justify-content:flex-start;font-size:12px" onclick="quickAI('Sugere a estratégia de defesa mais adequada para este caso')">✦ Estratégia de defesa</button>
+                  <button class="btn btn-g" style="justify-content:flex-start;font-size:12px" onclick="quickAI('Calcula o valor máximo da indemnização ao abrigo do CT')">✦ Calcular indemnização</button>
+                </div>
+              </div>
+              <div class="card" style="border-color:rgba(201,168,76,0.15)">
+                <div class="ct" style="color:var(--gold)">Histórico AI</div>
+                <div style="font-size:12px;color:var(--text3);display:flex;flex-direction:column;gap:8px">
+                  <div style="padding-bottom:7px;border-bottom:1px solid var(--border)">Análise de viabilidade · <span style="font-family:var(--font-m);font-size:10px">hoje 14:23</span></div>
+                  <div style="padding-bottom:7px;border-bottom:1px solid var(--border)">Sumário de notas · <span style="font-family:var(--font-m);font-size:10px">15 Mar</span></div>
+                  <div>Pesquisa jurisprudência TRL · <span style="font-family:var(--font-m);font-size:10px">12 Mar</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tc" id="tr">
+          <div class="two-col">
+            <div class="card">
+              <div class="ref-i"><div class="ref-c">Código do Trabalho · Art. 374.º</div><div class="ref-t">Despedimento por inadaptação — Fundamentos</div><div class="ref-s">Define os requisitos cumulativos para licitude do despedimento por inadaptação: modificação substancial das funções, redução de produtividade, e impossibilidade de ocupação alternativa.</div></div>
+              <div class="ref-i"><div class="ref-c">Código do Trabalho · Art. 375.º</div><div class="ref-t">Dever de Formação Prévia</div><div class="ref-s">O empregador é obrigado a ministrar formação adequada ao trabalhador antes de invocar inadaptação decorrente de alteração tecnológica ou organizacional. A sua ausência invalida o despedimento.</div></div>
+              <div class="ref-i"><div class="ref-c">Ac. TRL · Proc. 1234/22.1T8LSB</div><div class="ref-t">Jurisprudência — Inadaptação sem formação</div><div class="ref-s">O TRL decidiu que a ausência de qualquer acção de formação no período de adaptação constitui vício procedimental insanável, determinando a ilicitude do despedimento independentemente dos resultados de desempenho.</div></div>
+              <div class="ref-i"><div class="ref-c">Código do Trabalho · Art. 390.º</div><div class="ref-t">Indemnização por despedimento ilícito</div><div class="ref-s">Em caso de despedimento ilícito, o trabalhador tem direito a indemnização entre 15 e 45 dias por cada ano de antiguidade, com o mínimo de 3 meses.</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:13px">
+              <div class="card">
+                <div class="ct">Pesquisa Legal Rápida</div>
+                <input class="fi" placeholder="Ex: aviso prévio inadaptação…" style="width:100%;margin-bottom:9px">
+                <button class="btn btn-p" style="width:100%;justify-content:center">Pesquisar</button>
+              </div>
+              <div class="card">
+                <div class="ct">Fontes Disponíveis</div>
+                <div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:var(--text2)">
+                  <div style="display:flex;align-items:center;gap:7px"><span style="color:var(--green)">●</span>Código do Trabalho (DRE)</div>
+                  <div style="display:flex;align-items:center;gap:7px"><span style="color:var(--green)">●</span>Jurisprudência TRL / STJ</div>
+                  <div style="display:flex;align-items:center;gap:7px"><span style="color:var(--amber)">●</span>Diário da República <span style="font-size:10px;color:var(--text3)">(em breve)</span></div>
+                  <div style="display:flex;align-items:center;gap:7px"><span style="color:var(--amber)">●</span>EUR-Lex <span style="font-size:10px;color:var(--text3)">(em breve)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div class="view" id="v-clientes">
+        <div class="filters">
+          <input class="fi" placeholder="🔍  Pesquisar cliente…" style="flex:1;max-width:300px">
+          <button class="btn btn-p" style="margin-left:auto">+ Novo Cliente</button>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Nome / Empresa</th><th>NIF</th><th>Contacto</th><th>Processos</th><th>Advogado</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div style="font-size:13px;font-weight:500">Faria &amp; Associados</div><div style="font-size:11px;color:var(--text3)">Empresa</div></td><td><span class="rc">501 234 567</span></td><td><span style="font-size:12px;color:var(--text2)">geral@faria-assoc.pt</span></td><td><span class="badge b-ec">2 activos</span></td><td><span style="font-size:12px;color:var(--text2)">Dr.ª A. Ferreira</span></td><td><button class="btn btn-g" style="font-size:11px;padding:4px 9px">Ver</button></td></tr>
+              <tr><td><div style="font-size:13px;font-weight:500">Família Monteiro</div><div style="font-size:11px;color:var(--text3)">Particular</div></td><td><span class="rc">123 456 789</span></td><td><span style="font-size:12px;color:var(--text2)">jorge.monteiro@gmail.com</span></td><td><span class="badge b-ec">1 activo</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. R. Santos</span></td><td><button class="btn btn-g" style="font-size:11px;padding:4px 9px">Ver</button></td></tr>
+              <tr><td><div style="font-size:13px;font-weight:500">GlobalFoods SA</div><div style="font-size:11px;color:var(--text3)">Empresa</div></td><td><span class="rc">509 876 543</span></td><td><span style="font-size:12px;color:var(--text2)">legal@globalfoods.pt</span></td><td><span class="badge b-an">1 análise</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. D. Silva</span></td><td><button class="btn btn-g" style="font-size:11px;padding:4px 9px">Ver</button></td></tr>
+              <tr><td><div style="font-size:13px;font-weight:500">NovaMed Lda.</div><div style="font-size:11px;color:var(--text3)">Empresa</div></td><td><span class="rc">513 001 222</span></td><td><span style="font-size:12px;color:var(--text2)">rh@novamed.pt</span></td><td><span class="badge b-ag">1 activo</span></td><td><span style="font-size:12px;color:var(--text2)">Dr.ª A. Ferreira</span></td><td><button class="btn btn-g" style="font-size:11px;padding:4px 9px">Ver</button></td></tr>
+              <tr><td><div style="font-size:13px;font-weight:500">Carlos Pereira</div><div style="font-size:11px;color:var(--text3)">Particular</div></td><td><span class="rc">198 765 432</span></td><td><span style="font-size:12px;color:var(--text2)">carlos.pereira@outlook.com</span></td><td><span class="badge b-ec">1 activo</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. R. Santos</span></td><td><button class="btn btn-g" style="font-size:11px;padding:4px 9px">Ver</button></td></tr>
+              <tr><td><div style="font-size:13px;font-weight:500">Studio Criativo Lda.</div><div style="font-size:11px;color:var(--text3)">Empresa</div></td><td><span class="rc">507 111 888</span></td><td><span style="font-size:12px;color:var(--text2)">hello@studiocriativo.pt</span></td><td><span class="badge b-ec">1 activo</span></td><td><span style="font-size:12px;color:var(--text2)">Dr. D. Silva</span></td><td><button class="btn btn-g" style="font-size:11px;padding:4px 9px">Ver</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRAZOS -->
+      <div class="view" id="v-prazos">
+        <div class="filters" style="margin-bottom:18px">
+          <select class="fi"><option>Todos os prazos</option><option>Urgentes (7 dias)</option><option>Este mês</option></select>
+          <select class="fi"><option>Toda a equipa</option><option>Dr.ª Ana Ferreira</option><option>Dr. Rui Santos</option><option>Dr. Duarte Silva</option></select>
+        </div>
+        <div class="dl-list">
+          <div class="dl-item urg" onclick="nav('caso')"><div style="text-align:center;min-width:38px"><div class="dl-day" style="color:#c47a7a">23</div><div class="dl-month">Mar</div></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Contestação — Faria &amp; Assoc. vs. TechStart</div><div style="font-size:12px;color:var(--text3);margin-top:2px">2024-LBR-041 · Dr.ª Ana Ferreira · Tribunal do Trabalho</div></div><span class="dl-u dl-red">4 dias</span></div>
+          <div class="dl-item" style="border-color:rgba(140,100,74,0.22)" onclick="nav('caso')"><div style="text-align:center;min-width:38px"><div class="dl-day" style="color:#c4aa7a">26</div><div class="dl-month">Mar</div></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Resposta ao Ministério — NovaMed Despedimento</div><div style="font-size:12px;color:var(--text3);margin-top:2px">2025-LBR-003 · Dr.ª Ana Ferreira · DGERT</div></div><span class="dl-u dl-amber">7 dias</span></div>
+          <div class="dl-item"><div style="text-align:center;min-width:38px"><div class="dl-day">10</div><div class="dl-month">Abr</div></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Audiência Prévia — Divórcio Pereira / Costa</div><div style="font-size:12px;color:var(--text3);margin-top:2px">2024-CIV-033 · Dr. Rui Santos · Tribunal de Família Porto</div></div><span class="dl-u dl-green">22 dias</span></div>
+          <div class="dl-item"><div style="text-align:center;min-width:38px"><div class="dl-day">15</div><div class="dl-month">Abr</div></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Entrega de Articulados — Herança Monteiro</div><div style="font-size:12px;color:var(--text3);margin-top:2px">2024-CIV-028 · Dr. Rui Santos · Tribunal Cível Porto</div></div><span class="dl-u dl-green">27 dias</span></div>
+          <div class="dl-item"><div style="text-align:center;min-width:38px"><div class="dl-day">02</div><div class="dl-month">Mai</div></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Sessão Arbitragem — GlobalFoods Contrato</div><div style="font-size:12px;color:var(--text3);margin-top:2px">2024-COM-019 · Dr. Duarte Silva · Câmara Arbitragem Lisboa</div></div><span class="dl-u dl-green">44 dias</span></div>
+          <div class="dl-item"><div style="text-align:center;min-width:38px"><div class="dl-day">30</div><div class="dl-month">Mai</div></div><div style="flex:1"><div style="font-size:13px;font-weight:500">Renovação Registo INPI — LogoMarca ®</div><div style="font-size:12px;color:var(--text3);margin-top:2px">2024-PI-007 · Dr. Duarte Silva · INPI</div></div><span class="dl-u dl-green">72 dias</span></div>
+        </div>
+      </div>
+
+      <!-- AI COPILOT -->
+      <div class="view" id="v-ai">
+        <div style="max-width:660px;margin:0 auto">
+          <div style="text-align:center;margin-bottom:28px">
+            <div style="font-family:var(--font-d);font-size:26px;color:var(--gold2);margin-bottom:7px">✦ AI Copilot Jurídico</div>
+            <div style="font-size:13px;color:var(--text3)">Análise, pesquisa e síntese jurídica assistida por IA</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px">
+            <div class="card" style="cursor:pointer" onmouseover="this.style.borderColor='rgba(201,168,76,0.28)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:17px;margin-bottom:7px">📋</div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Analisar Processo</div><div style="font-size:12px;color:var(--text3)">Cole factos e obtenha análise estruturada, riscos e próximos passos</div></div>
+            <div class="card" style="cursor:pointer" onmouseover="this.style.borderColor='rgba(201,168,76,0.28)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:17px;margin-bottom:7px">🔍</div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Pesquisa Legal</div><div style="font-size:12px;color:var(--text3)">Artigos do CT, jurisprudência e doutrina relevante</div></div>
+            <div class="card" style="cursor:pointer" onmouseover="this.style.borderColor='rgba(201,168,76,0.28)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:17px;margin-bottom:7px">📝</div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Sumarizar Notas</div><div style="font-size:12px;color:var(--text3)">Transformar notas soltas em sumário jurídico estruturado</div></div>
+            <div class="card" style="cursor:pointer" onmouseover="this.style.borderColor='rgba(201,168,76,0.28)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:17px;margin-bottom:7px">⚖</div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Estratégia de Defesa</div><div style="font-size:12px;color:var(--text3)">Abordagem processual com base nos factos do processo</div></div>
+          </div>
+          <div class="card" style="border-color:rgba(201,168,76,0.14)">
+            <textarea class="ai-ta" placeholder="Descreva a situação jurídica ou faça uma pergunta…" style="border:none;padding:0;background:transparent;min-height:110px;resize:none"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding-top:11px;border-top:1px solid var(--border)">
+              <span style="font-size:11.5px;color:var(--text3)">Processo: <span style="color:var(--gold)">2024-LBR-041 ↓</span></span>
+              <button class="btn btn-p">✦ Enviar</button>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:12px;font-style:italic">A IA jurídica é uma ferramenta de apoio. Toda a análise deve ser validada por advogado qualificado.</div>
+        </div>
+      </div>
+
+      <!-- PESQUISA -->
+      <div class="view" id="v-pesquisa">
+        <div style="max-width:680px">
+          <div style="margin-bottom:22px">
+            <div style="font-family:var(--font-d);font-size:19px;margin-bottom:14px">Pesquisa de Legislação e Jurisprudência</div>
+            <div style="display:flex;gap:8px">
+              <input class="fi" placeholder="Ex: base legal para despedimento por inadaptação em Portugal…" style="flex:1;padding:9px 13px">
+              <button class="btn btn-p" style="padding:9px 16px">✦ Pesquisar</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">
+              <span style="font-size:11.5px;color:var(--text3)">Frequentes:</span>
+              <span style="font-size:11.5px;color:var(--gold);cursor:pointer">despedimento inadaptação</span>·
+              <span style="font-size:11.5px;color:var(--gold);cursor:pointer">caducidade contrato</span>·
+              <span style="font-size:11.5px;color:var(--gold);cursor:pointer">assédio moral laboral</span>·
+              <span style="font-size:11.5px;color:var(--gold);cursor:pointer">partilha herança</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Última pesquisa: <span style="color:var(--text2)">despedimento por inadaptação — formação prévia</span></div>
+          <div class="card">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:11px;font-weight:600">✦ Resposta Estruturada</div>
+            <div style="font-size:13.5px;font-weight:500;margin-bottom:9px">Despedimento por inadaptação — requisitos e base legal</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:13px">O despedimento por inadaptação está regulado nos arts. 374.º a 376.º do Código do Trabalho. Para ser lícito, o empregador deve verificar cumulativamente: (1) modificação substancial da forma de trabalhar, (2) redução de produtividade ou qualidade, (3) impossibilidade de integração noutra função, e (4) <strong style="color:var(--text)">ministração de formação adequada prévia</strong> (art. 375.º CT) — requisito frequentemente incumprido.</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:10px;padding:11px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)"><div style="font-family:var(--font-m);font-size:10px;color:var(--gold);min-width:78px;padding-top:2px">Art. 374.º CT</div><div style="font-size:12.5px;color:var(--text2)">Fundamentos do despedimento por inadaptação — lista taxativa das causas admissíveis</div></div>
+              <div style="display:flex;gap:10px;padding:11px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)"><div style="font-family:var(--font-m);font-size:10px;color:var(--gold);min-width:78px;padding-top:2px">Art. 375.º CT</div><div style="font-size:12.5px;color:var(--text2)">Dever de formação — o empregador deve proporcionar formação antes de invocar inadaptação</div></div>
+              <div style="display:flex;gap:10px;padding:11px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)"><div style="font-family:var(--font-m);font-size:10px;color:var(--gold);min-width:78px;padding-top:2px">Art. 376.º CT</div><div style="font-size:12.5px;color:var(--text2)">Procedimento — tramitação obrigatória, aviso prévio e comunicações exigidas</div></div>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:12px;font-style:italic;border-top:1px solid var(--border);padding-top:9px">⚠ Pesquisa gerada por IA. Consultar sempre o texto oficial no Diário da República (dre.pt).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const titles = { dashboard:'Dashboard', casos:'Processos', caso:'Faria & Associados vs. TechStart Lda.', clientes:'Clientes', prazos:'Prazos & Calendário', ai:'AI Copilot', pesquisa:'Pesquisa Legal' };
+function nav(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+  const el = document.getElementById('v-' + v);
+  if (el) el.classList.add('active');
+  document.getElementById('tt').textContent = titles[v] || v;
+  const map = { dashboard:'Dashboard', casos:'Processos', caso:'Processos', clientes:'Clientes', prazos:'Prazos', ai:'AI', pesquisa:'Pesquisa' };
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.trim().startsWith(map[v] || '')) n.classList.add('active');
+  });
+}
+function stab(el, id) {
+  const w = el.closest('.view');
+  w.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  w.querySelectorAll('.tc').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+function toggle(el) {
+  el.classList.toggle('done');
+  const t = el.nextElementSibling;
+  if (t) t.classList.toggle('done');
+}
+function quickAI(txt) {
+  const inp = document.getElementById('ai-inp');
+  if (inp) inp.value = txt;
+  runAI();
+}
+function runAI() {
+  const res = document.getElementById('ai-res');
+  if (!res) return;
+  res.style.display = 'none';
+  const t = document.createElement('div');
+  t.className = 'ai-typing';
+  t.id = 'ait';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  res.parentNode.insertBefore(t, res);
+  setTimeout(() => {
+    t.remove();
+    res.style.display = 'block';
+    res.style.animation = 'none';
+    res.offsetHeight;
+    res.style.animation = 'fi 0.3s ease';
+  }, 1800);
+}
+</script>
+</body>
+</html>
